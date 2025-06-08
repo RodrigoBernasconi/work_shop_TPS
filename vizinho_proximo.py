@@ -10,7 +10,7 @@ def generate_graph(n_nodes, weight__range=(1, 100)):
         G.edges[u,v]['weight'] = random.randint(*weight__range)
     return G
 
-def plot_graph_step(G, tour, current_node, pos):
+def plot_graph_step(G, tour, current_node, pos): 
     plt.clf()
     nx.draw(G, pos, with_labels=True, node_color="lightblue", node_size=500)
     path_edges = list(zip(tour, tour[1:]))
@@ -52,8 +52,8 @@ def nearest_neighbor_tsp(G, start_node=None):
 
     tour_cost = calculate_tour_cost(G, tour)
 
-    print(f"Caminho do algoritmo heuristico: {tour}")
-    print(f"Custo do caminho do algoritmo heuristico: {tour_cost}")
+    print(f"Caminho do algoritmo guloso: {tour}")
+    print(f"Custo do caminho do algoritmo guloso: {tour_cost}")
 
     plt.ioff()
     plt.show()
