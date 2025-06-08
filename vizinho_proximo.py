@@ -1,13 +1,15 @@
-import random
 import networkx as nx
 import matplotlib.pyplot as plt
+import sys
+import random
 
-from networkx.algorithms.approximation import traveling_salesman_problem
-
-def generate_graph(n_nodes, weight__range=(1, 100)):
-    G = nx.complete_graph(n_nodes)
-    for u,v in G.edges():
-        G.edges[u,v]['weight'] = random.randint(*weight__range)
+def matrix_to_graph(dists):
+    n = len(dists)
+    G = nx.complete_graph(n)
+    for i in range(n):
+        for j in range(n):
+            if i != j:
+                G[i][j]['weight'] = dists[i][j]
     return G
 
 def plot_graph_step(G, tour, current_node, pos): 
@@ -25,10 +27,7 @@ def plot_graph_step(G, tour, current_node, pos):
 def calculate_tour_cost(G, tour):
     return sum(G[tour[i]][tour[i+1]]['weight'] for i in range(len(tour)-1))
 
-def nearest_neighbor_tsp(G, start_node=None):
-    if start_node is None:
-        start_node = random.choice(list(G.nodes))
-
+def nearest_neighbor_tsp(G, start_node=0):
     pos = nx.spring_layout(G)
     plt.ion()
     plt.show()
@@ -52,19 +51,53 @@ def nearest_neighbor_tsp(G, start_node=None):
 
     tour_cost = calculate_tour_cost(G, tour)
 
-    print(f"Caminho do algoritmo guloso: {tour}")
-    print(f"Custo do caminho do algoritmo guloso: {tour_cost}")
+    print(f"{' Vizinho + proximo ':-^40}")
+    print(f"Custo: {tour_cost} | Caminho: {' -> '.join(map(str, tour))}")
 
     plt.ioff()
     plt.show()
 
+def read_distances(filename):
+    dists = []
+    with open(filename, 'r') as f:
+        for line in f:
+            # Skip comments
+            if line[0] == '#':
+                continue
+
+            dists.append(list(map(int, map(str.strip, line.split(',')))))
+    return dists
+
+def generate_distances(n):
+    dists = [[0] * n for i in range(n)]
+    for i in range(n):
+        for j in range(i+1, n):
+            dists[i][j] = dists[j][i] = random.randint(1, 99)
+
+    return dists
+
+def main_near_neighbor():
+    arg = sys.argv[1]
+    if arg.endswith('.csv'):
+        dists = read_distances(arg)
+    else:
+        dists = generate_distances(int(arg))
+
+    G = matrix_to_graph(dists)
+    nearest_neighbor_tsp(G, start_node=0)
+
+# Exemplo de uso com a mesma matriz do Held-Karp
 if __name__ == "__main__":
-    G = generate_graph(5)
+    # Exemplo: mesma matriz usada no Held-Karp
+    dists = [
+        [0, 31, 46, 22, 34, 77, 61],
+        [31, 0, 68, 16, 42, 94, 58],
+        [46, 68, 0, 52, 83, 62, 60],
+        [22, 16, 52, 0, 30, 92, 92],
+        [34, 42, 83, 30, 0, 12, 21],
+        [77, 94, 62, 92, 12, 0, 77],
+        [61, 58, 60, 92, 21, 77, 0]
+    ]
 
-    approx_tour = traveling_salesman_problem(G, cycle=True)
-    approx_tour_cost = calculate_tour_cost(G, approx_tour)
-
-    print(f"Caminho do algoritmo aproximativo: {approx_tour}")
-    print(f"Custo do caminho do algoritmo aproximativo: {approx_tour_cost}")
-    print('-'*60)
+    G = matrix_to_graph(dists)
     nearest_neighbor_tsp(G, start_node=0)
